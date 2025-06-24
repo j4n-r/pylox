@@ -4,8 +4,7 @@ from scanner import Scanner
 
 
 class Lox:
-    def __init__(self):
-        self.hadError = False
+    hadError = False
 
     @staticmethod
     def runFile(path: str):

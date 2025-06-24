@@ -46,7 +46,7 @@ class Scanner:
         return c
 
     def addToken(self, type_: TokenType, literal: object = None):
-        text = str = self.source[self.start : self.current]
+        text: str = self.source[self.start : self.current]
         self.tokens.append(Token(type_, text, literal, self.line))
 
     def match(self, expected: str):
@@ -67,7 +67,7 @@ class Scanner:
         return self.source[self.current]
 
     def peekNext(self) -> str:
-        if self.current + 1 <= len(self.source):
+        if self.current + 1 >= len(self.source):
             return "\0"
         return self.source[self.current + 1]
 
@@ -75,6 +75,7 @@ class Scanner:
         while self.peek() != '"' and not self.isAtEnd():
             if self.peek() == "\n":
                 self.line += 1
+            self.advance()
 
         if self.isAtEnd():
             from lox import Lox
@@ -82,6 +83,7 @@ class Scanner:
             Lox.error(self.line, "Unterminated String")
             return
         # the closing " from the string
+
         self.advance()
         value: str = self.source[self.start + 1 : self.current - 1]
         self.addToken(TokenType.STRING, value)
@@ -129,7 +131,7 @@ class Scanner:
                 self.addToken(TokenType.STAR)
             case "!":
                 self.addToken(
-                    TokenType.BANG_EQUAL if self.match("!") else TokenType.BANG
+                    TokenType.BANG_EQUAL if self.match("=") else TokenType.BANG
                 )
             case "=":
                 self.addToken(
@@ -156,9 +158,8 @@ class Scanner:
                 self.line += 1
             case '"':
                 self.string()
-
             case _:
-                if c.isnumeric:
+                if c.isnumeric():
                     self.number()
                 elif c.isalpha():
                     self.identifier()

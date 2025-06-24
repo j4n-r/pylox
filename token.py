@@ -60,4 +60,9 @@ class Token:
         self.line: Final[int] = line
 
     def __str__(self):
-        return f"{self.type} +  + {self.lexeme} +  + {self.literal}"
+        """Called by str() and print()"""
+        return f"{self.type} {self.lexeme} {self.literal}"
+
+    def __repr__(self):
+        """Called by repr() and in lists"""
+        return f"{self.type}, '{self.lexeme}', {self.literal}, {self.line})"

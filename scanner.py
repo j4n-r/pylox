@@ -1,8 +1,5 @@
-from audioop import add
+from token import Token, TokenType
 from typing import Final
-
-from .lox import Lox
-from .token import Token, TokenType
 
 
 class Scanner:
@@ -76,6 +73,8 @@ class Scanner:
                 self.line += 1
 
         if self.isAtEnd():
+            from lox import Lox
+
             Lox.error(self.line, "Unterminated String")
             return
         # the closing " from the string
@@ -160,4 +159,6 @@ class Scanner:
                 elif c.isalpha():
                     self.identifier()
                 else:
+                    from lox import Lox
+
                     Lox.error(self.line, "Unexpected character.")

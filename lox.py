@@ -1,5 +1,7 @@
 import sys
 
+from scanner import Scanner
+
 
 class Lox:
     def __init__(self):
@@ -13,7 +15,7 @@ class Lox:
     @staticmethod
     def runPrompt():
         while True:
-            line = input(">")
+            line = input("> ")
             if line == "":
                 break
             Lox.run(line)
@@ -39,12 +41,12 @@ class Lox:
 
 
 def main():
-    lox = Lox
+    lox = Lox()
     if len(sys.argv) < 1:
         print("Usage: plox [script]")
         exit()
-    elif len(sys.argv) == 1:
-        lox.runFile(sys.argv[0])
+    elif len(sys.argv) == 2:
+        lox.runFile(sys.argv[1])
     else:
         lox.runPrompt()
 

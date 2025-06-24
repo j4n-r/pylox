@@ -50,6 +50,10 @@ class Scanner:
         self.tokens.append(Token(type_, text, literal, self.line))
 
     def match(self, expected: str):
+        """
+        Returns the equality of `expected` to `current` \n
+        sets current += 1 if true
+        """
         if self.isAtEnd():
             return False
         if self.source[self.current] != expected:

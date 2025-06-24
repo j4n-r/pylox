@@ -50,6 +50,10 @@ class Scanner:
         self.tokens.append(Token(type_, text, literal, self.line))
 
     def match(self, expected: str):
+        """
+        Returns the equality of `expected` to `current` \n
+        sets current += 1 if true
+        """
         if self.isAtEnd():
             return False
         if self.source[self.current] != expected:
@@ -143,6 +147,11 @@ class Scanner:
                 if self.match("/"):
                     # A comment goes until the end of the line.
                     while self.peek() != "\n" and not self.isAtEnd():
+                        self.advance()
+                elif self.match("*"):
+                    while self.peek() != "*" and self.peekNext() != "/":
+                        if self.isAtEnd():
+                            self.line += 1
                         self.advance()
                 else:
                     self.addToken(TokenType.SLASH)

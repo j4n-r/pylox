@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sys
 
 from scanner import Scanner
@@ -7,12 +9,12 @@ class Lox:
     hadError = False
 
     @staticmethod
-    def runFile(path: str):
+    def run_file(path: str):
         with open(path, "r") as file:
             Lox.run(file.read())
 
     @staticmethod
-    def runPrompt():
+    def run_prompt():
         while True:
             line = input("> ")
             if line == "":
@@ -23,7 +25,7 @@ class Lox:
     @staticmethod
     def run(source: str):
         scanner = Scanner(source)
-        tokens = scanner.scanTokens()
+        tokens = scanner.scan_tokens()
         for token in tokens:
             print(token)
         if Lox.hadError:
@@ -45,9 +47,9 @@ def main():
         print("Usage: plox [script]")
         exit()
     elif len(sys.argv) == 2:
-        lox.runFile(sys.argv[1])
+        lox.run_file(sys.argv[1])
     else:
-        lox.runPrompt()
+        lox.run_prompt()
 
 
 if __name__ == "__main__":

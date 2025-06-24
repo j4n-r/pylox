@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from token import Token, TokenType
 from typing import Final
 
@@ -29,13 +31,13 @@ class Scanner:
         self.current: int = 0
         self.line: int = 1
 
-    def isAtEnd(self):
+    def is_at_end(self):
         return self.current >= len(self.source)
 
-    def scanTokens(self) -> list[Token]:
-        while not self.isAtEnd():
+    def scan_tokens(self) -> list[Token]:
+        while not self.is_at_end():
             self.start = self.current
-            self.scanToken()
+            self.scan_token()
 
         self.tokens.append(Token(TokenType.EOF, "", None, self.line))
         return self.tokens
@@ -45,7 +47,7 @@ class Scanner:
         self.current += 1
         return c
 
-    def addToken(self, type_: TokenType, literal: object = None):
+    def add_token(self, type_: TokenType, literal: object = None):
         text: str = self.source[self.start : self.current]
         self.tokens.append(Token(type_, text, literal, self.line))
 
@@ -54,7 +56,7 @@ class Scanner:
         Returns the equality of `expected` to `current` \n
         sets current += 1 if true
         """
-        if self.isAtEnd():
+        if self.is_at_end():
             return False
         if self.source[self.current] != expected:
             return False
@@ -62,22 +64,22 @@ class Scanner:
         return True
 
     def peek(self) -> str:
-        if self.isAtEnd():
+        if self.is_at_end():
             return "\0"
         return self.source[self.current]
 
-    def peekNext(self) -> str:
+    def peek_next(self) -> str:
         if self.current + 1 >= len(self.source):
             return "\0"
         return self.source[self.current + 1]
 
     def string(self):
-        while self.peek() != '"' and not self.isAtEnd():
+        while self.peek() != '"' and not self.is_at_end():
             if self.peek() == "\n":
                 self.line += 1
             self.advance()
 
-        if self.isAtEnd():
+        if self.is_at_end():
             from lox import Lox
 
             Lox.error(self.line, "Unterminated String")
@@ -86,16 +88,16 @@ class Scanner:
 
         self.advance()
         value: str = self.source[self.start + 1 : self.current - 1]
-        self.addToken(TokenType.STRING, value)
+        self.add_token(TokenType.STRING, value)
 
     def number(self):
         while self.peek().isnumeric():
             self.advance()
-        if self.peek() == "." and self.peekNext().isnumeric():
+        if self.peek() == "." and self.peek_next().isnumeric():
             self.advance()
             while self.peek().isnumeric():
                 self.advance()
-        self.addToken(TokenType.NUMBER, float(self.source[self.start : self.current]))
+        self.add_token(TokenType.NUMBER, float(self.source[self.start : self.current]))
 
     def identifier(self):
         while self.peek().isalnum():
@@ -104,54 +106,54 @@ class Scanner:
         type_ = self.keywords.get(text)
         if type_ is None:
             type_ = TokenType.IDENTIFIER
-        self.addToken(type_)
+        self.add_token(type_)
 
-    def scanToken(self):
+    def scan_token(self):
         c = self.advance()
         match c:
             case "(":
-                self.addToken(TokenType.LEFT_PAREN)
+                self.add_token(TokenType.LEFT_PAREN)
             case ")":
-                self.addToken(TokenType.RIGHT_PAREN)
+                self.add_token(TokenType.RIGHT_PAREN)
             case "{":
-                self.addToken(TokenType.LEFT_BRACE)
+                self.add_token(TokenType.LEFT_BRACE)
             case "}":
-                self.addToken(TokenType.RIGHT_BRACE)
+                self.add_token(TokenType.RIGHT_BRACE)
             case ",":
-                self.addToken(TokenType.COMMA)
+                self.add_token(TokenType.COMMA)
             case ".":
-                self.addToken(TokenType.DOT)
+                self.add_token(TokenType.DOT)
             case "-":
-                self.addToken(TokenType.MINUS)
+                self.add_token(TokenType.MINUS)
             case "+":
-                self.addToken(TokenType.PLUS)
+                self.add_token(TokenType.PLUS)
             case ";":
-                self.addToken(TokenType.SEMICOLON)
+                self.add_token(TokenType.SEMICOLON)
             case "*":
-                self.addToken(TokenType.STAR)
+                self.add_token(TokenType.STAR)
             case "!":
-                self.addToken(
+                self.add_token(
                     TokenType.BANG_EQUAL if self.match("=") else TokenType.BANG
                 )
             case "=":
-                self.addToken(
+                self.add_token(
                     TokenType.EQUAL_EQUAL if self.match("=") else TokenType.EQUAL
                 )
             case "<":
-                self.addToken(
+                self.add_token(
                     TokenType.LESS_EQUAL if self.match("=") else TokenType.LESS
                 )
             case ">":
-                self.addToken(
+                self.add_token(
                     TokenType.GREATER_EQUAL if self.match("=") else TokenType.GREATER
                 )
             case "/":
                 if self.match("/"):
                     # A comment goes until the end of the line.
-                    while self.peek() != "\n" and not self.isAtEnd():
+                    while self.peek() != "\n" and not self.is_at_end():
                         self.advance()
                 else:
-                    self.addToken(TokenType.SLASH)
+                    self.add_token(TokenType.SLASH)
             case " " | "\r" | "\t":  # ignore whitespace
                 pass
             case "\n":

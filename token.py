@@ -56,13 +56,17 @@ class Token:
     def __init__(self, type: TokenType, lexeme: str, literal: object, line: int):
         self.type: Final[TokenType] = type
         self.lexeme: Final[str] = lexeme
-        self.literal: Final[object] = literal
+        self.literal: object = literal  # removed Final for now for the repr method
         self.line: Final[int] = line
 
     def __str__(self):
         """Called by str() and print()"""
+        if self.literal is None:
+            self.literal = ""
         return f"{self.type} {self.lexeme} {self.literal}"
 
     def __repr__(self):
         """Called by repr() and in lists"""
+        if self.literal is None:
+            self.literal = ""
         return f"{self.type}, '{self.lexeme}', {self.literal}, {self.line})"

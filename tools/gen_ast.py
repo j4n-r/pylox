@@ -9,6 +9,7 @@ ast_defs = {
 
 code = """from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Final, Protocol
 
@@ -16,10 +17,14 @@ from .token import Token
 
 
 @dataclass
-class Expr:
+class Expr(ABC):
     pass
     
-    class Visitor(Protocol):
+    @abstractmethod
+    def accept[R](self, visitor: Expr.Visitor[R]) -> R:
+        pass
+
+    class Visitor[R](Protocol):
 """
 
 path = Path(__file__).parent / "../lox/ast_types.py"
@@ -31,7 +36,7 @@ with open(path, "w") as f:
     # Visitor methods
     for expr in ast_defs.keys():
         f.write(
-            f"        def visit_{expr.lower()}_expr(self, expr: {expr}) -> object: ...\n"
+            f"        def visit_{expr.lower()}_expr(self, expr: {expr}) -> R: ...\n"
         )
     f.write("\n")
 
@@ -43,7 +48,7 @@ with open(path, "w") as f:
         for field_type, field_name in fields:
             f.write(f"    {field_name}: Final[{field_type}]\n")
 
-        f.write("\n    def accept(self, visitor: Expr.Visitor) -> object:\n")
+        f.write("\n    def accept[R](self, visitor: Expr.Visitor[R]) -> R:\n")
         f.write(f"        return visitor.visit_{expr.lower()}_expr(self)\n")
         f.write("\n")
 

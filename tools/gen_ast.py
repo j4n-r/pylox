@@ -13,7 +13,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Final, Protocol
 
-from .token import Token
+from token_type import Token
 
 
 @dataclass

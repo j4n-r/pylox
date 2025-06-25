@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from token import Token, TokenType
 from typing import Final
+
+from token_type import Token, TokenType
 
 
 class Scanner:

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import sys
 
+from ast_printer import AstPrinter
+from ast_types import Expr
 from scanner import Scanner
 
 
@@ -42,6 +44,7 @@ class Lox:
 
 
 def main():
+    expression = Expr.Binary
     lox = Lox()
     if len(sys.argv) < 1:
         print("Usage: plox [script]")

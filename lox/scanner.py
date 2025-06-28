@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from token_type import Token, TokenType
+from .token_type import Token, TokenType
 
 
 class Scanner:
@@ -81,9 +81,9 @@ class Scanner:
             self.advance()
 
         if self.is_at_end():
-            from lox import Lox
+            from lox.lox import Lox
 
-            Lox.error(self.line, "Unterminated String")
+            print(self.line, "Unterminated String")
             return
         # the closing " from the string
 
@@ -167,6 +167,4 @@ class Scanner:
                 elif c.isalpha():
                     self.identifier()
                 else:
-                    from lox import Lox
-
-                    Lox.error(self.line, "Unexpected character.")
+                    print(self.line, "Unexpected character.")

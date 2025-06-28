@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import sys
 
-from ast_printer import AstPrinter
-from ast_types import Expr
-from scanner import Scanner
+from .ast_printer import AstPrinter
+from .scanner import Scanner
+from .token_type import Token, TokenType
 
 
 class Lox:
@@ -26,12 +26,23 @@ class Lox:
 
     @staticmethod
     def run(source: str):
+        from .parser import Parser
+
         scanner = Scanner(source)
         tokens = scanner.scan_tokens()
-        for token in tokens:
-            print(token)
+
+        print(tokens)
+        parser = Parser(tokens)
+        expression = parser.parse()
+
         if Lox.hadError:
-            exit(65)
+            return
+
+        # Add this null check:
+        if expression is None:
+            print("Failed to parse expression")
+            return
+        print(AstPrinter().print(expression))
 
     @staticmethod
     def report(line: int, where: str, message: str):
@@ -39,12 +50,14 @@ class Lox:
         Lox.hadError = True
 
     @staticmethod
-    def error(line: int, message: str):
-        Lox.report(line, "", message)
+    def error(token: Token, message: str):
+        if token.type is TokenType.EOF:
+            Lox.report(token.line, " at end", message)
+        else:
+            Lox.report(token.line, f" at '{token.lexeme}'", message)
 
 
 def main():
-    expression = Expr.Binary
     lox = Lox()
     if len(sys.argv) < 1:
         print("Usage: plox [script]")

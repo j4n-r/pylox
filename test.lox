@@ -1,3 +1,1 @@
-var string = "hello"
-var number = 5
-var anothe_number = number + 3
+(5 + 5) * 28

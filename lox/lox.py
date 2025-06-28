@@ -2,18 +2,27 @@ from __future__ import annotations
 
 import sys
 
+from lox.interpreter import Interpreter
+
 from .ast_printer import AstPrinter
+from .errors import LoxRuntimeError
 from .scanner import Scanner
 from .token_type import Token, TokenType
 
 
 class Lox:
-    hadError = False
+    interpreter = Interpreter()
+    had_error = False
+    had_runtime_error = False
 
     @staticmethod
     def run_file(path: str):
         with open(path, "r") as file:
             Lox.run(file.read())
+        if Lox.had_error:
+            exit(65)
+        if Lox.had_runtime_error:
+            exit(70)
 
     @staticmethod
     def run_prompt():
@@ -22,7 +31,7 @@ class Lox:
             if line == "":
                 break
             Lox.run(line)
-            Lox.hadError = False
+            Lox.had_error = False
 
     @staticmethod
     def run(source: str):
@@ -35,19 +44,19 @@ class Lox:
         parser = Parser(tokens)
         expression = parser.parse()
 
-        if Lox.hadError:
+        if Lox.had_error:
             return
 
         # Add this null check:
         if expression is None:
             print("Failed to parse expression")
             return
-        print(AstPrinter().print(expression))
+        Lox.interpreter.interpret(expression)
 
     @staticmethod
     def report(line: int, where: str, message: str):
         print(f"[line {line}] Error {where}: {message}")
-        Lox.hadError = True
+        Lox.had_error = True
 
     @staticmethod
     def error(token: Token, message: str):
@@ -55,6 +64,11 @@ class Lox:
             Lox.report(token.line, " at end", message)
         else:
             Lox.report(token.line, f" at '{token.lexeme}'", message)
+
+    @staticmethod
+    def runtime_error(error: LoxRuntimeError):
+        print(f"{error.get_message()} \n [line: {error.token.line}]", file=sys.stderr)
+        Lox.had_runtime_error = True
 
 
 def main():

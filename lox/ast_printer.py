@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import override
 
-from .ast_types import Binary, Expr, Grouping, Literal, Unary
+from .expr_types import Binary, Expr, Grouping, Literal, Unary
 
 
 class AstPrinter(Expr.Visitor):

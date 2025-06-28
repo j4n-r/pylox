@@ -10,7 +10,7 @@ from .token_type import Token
 @dataclass
 class Expr(ABC):
     pass
-
+    
     @abstractmethod
     def accept[R](self, visitor: Expr.Visitor[R]) -> R:
         pass
@@ -21,7 +21,6 @@ class Expr(ABC):
         def visit_literal_expr(self, expr: Literal) -> R: ...
         def visit_unary_expr(self, expr: Unary) -> R: ...
 
-
 @dataclass
 class Binary(Expr):
     left: Final[Expr]
@@ -31,14 +30,12 @@ class Binary(Expr):
     def accept[R](self, visitor: Expr.Visitor[R]) -> R:
         return visitor.visit_binary_expr(self)
 
-
 @dataclass
 class Grouping(Expr):
     expression: Final[Expr]
 
     def accept[R](self, visitor: Expr.Visitor[R]) -> R:
         return visitor.visit_grouping_expr(self)
-
 
 @dataclass
 class Literal(Expr):
@@ -47,7 +44,6 @@ class Literal(Expr):
     def accept[R](self, visitor: Expr.Visitor[R]) -> R:
         return visitor.visit_literal_expr(self)
 
-
 @dataclass
 class Unary(Expr):
     operator: Final[Token]
@@ -55,3 +51,4 @@ class Unary(Expr):
 
     def accept[R](self, visitor: Expr.Visitor[R]) -> R:
         return visitor.visit_unary_expr(self)
+

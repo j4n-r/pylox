@@ -1,11 +1,12 @@
 from typing import override
 
-from .ast_types import Binary, Expr, Grouping, Literal, Unary
 from .errors import LoxRuntimeError
+from .expr_types import Binary, Expr, Grouping, Literal, Unary
+from .stmt_types import Stmt
 from .token_type import Token, TokenType
 
 
-class Interpreter(Expr.Visitor[object]):
+class Interpreter(Expr.Visitor[object], Stmt.Visitor):
     @override
     def visit_literal_expr(self, expr: Literal):
         return expr.value

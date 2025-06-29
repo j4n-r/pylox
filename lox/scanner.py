@@ -48,9 +48,9 @@ class Scanner:
         self.current += 1
         return c
 
-    def add_token(self, type_: TokenType, literal: object = None):
+    def add_token(self, token_type: TokenType, literal: object = None):
         text: str = self.source[self.start : self.current]
-        self.tokens.append(Token(type_, text, literal, self.line))
+        self.tokens.append(Token(token_type, text, literal, self.line))
 
     def match(self, expected: str):
         """
@@ -104,10 +104,10 @@ class Scanner:
         while self.peek().isalnum():
             self.advance()
         text: str = self.source[self.start : self.current]
-        type_ = self.keywords.get(text)
-        if type_ is None:
-            type_ = TokenType.IDENTIFIER
-        self.add_token(type_)
+        token_type = self.keywords.get(text)
+        if token_type is None:
+            token_type = TokenType.IDENTIFIER
+        self.add_token(token_type)
 
     def scan_token(self):
         c = self.advance()

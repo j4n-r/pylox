@@ -3,7 +3,7 @@ from __future__ import annotations
 from tokenize import TokenError
 
 from lox.lox import Lox
-from lox.stmt_types import Stmt
+from lox.stmt_types import Expression, Print, Stmt
 
 from .expr_types import Binary, Expr, Grouping, Literal, Unary
 from .token_type import Token, TokenType
@@ -50,18 +50,18 @@ class Parser:
 
     def statement(self):
         if self.match(TokenType.PRINT):
-            self.print_statement()
-        self.expression_statement()
+            return self.print_statement()
+        return self.expression_statement()
 
     def print_statement(self):
         value = self.expression()
         self.consume(TokenType.SEMICOLON, "Expect ';' after value")
-        return Stmt.Print(value)
+        return Print(value)
 
     def expression_statement(self):
         expr = self.expression()
         self.consume(TokenType.SEMICOLON, "Expect ';' after expression")
-        return Stmt.Expression(expr)
+        return Expression(expr)
 
     def is_at_end(self):
         return self.peek().type == TokenType.EOF
@@ -154,11 +154,11 @@ class Parser:
 
         if self.match(TokenType.STRING, TokenType.NUMBER):
             return Literal(self.previous().literal)
+
         if self.match(TokenType.LEFT_PAREN):
             expr = self.expression()
             self.consume(TokenType.RIGHT_PAREN, "Expect ')' after Expression.")
             return Grouping(expr)
-
         raise self.error(self.peek(), "Expect expression")
 
     def parse(self) -> list[Stmt]:

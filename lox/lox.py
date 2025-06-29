@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 
+from lox import ast_printer, interpreter
 from lox.interpreter import Interpreter
 
 from .ast_printer import AstPrinter
@@ -40,18 +41,13 @@ class Lox:
         scanner = Scanner(source)
         tokens = scanner.scan_tokens()
 
-        print(tokens)
         parser = Parser(tokens)
-        expression = parser.parse()
+        statements = parser.parse()
 
         if Lox.had_error:
             return
 
-        # Add this null check:
-        if expression is None:
-            print("Failed to parse expression")
-            return
-        Lox.interpreter.interpret(expression)
+        Lox.interpreter.interpret(statements)
 
     @staticmethod
     def report(line: int, where: str, message: str):

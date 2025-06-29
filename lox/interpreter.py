@@ -2,11 +2,11 @@ from typing import override
 
 from .errors import LoxRuntimeError
 from .expr_types import Binary, Expr, Grouping, Literal, Unary
-from .stmt_types import Stmt
+from .stmt_types import Expression, Print, Stmt
 from .token_type import Token, TokenType
 
 
-class Interpreter(Expr.Visitor[object], Stmt.Visitor):
+class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
     @override
     def visit_literal_expr(self, expr: Literal):
         return expr.value
@@ -66,6 +66,18 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor):
     def evaluate(self, expr: Expr):
         return expr.accept(self)
 
+    def execute(self, stmt: Stmt):
+        stmt.accept(self)
+
+    @override
+    def visit_expression_stmt(self, stmt: Expression):
+        self.evaluate(stmt.expression)
+
+    @override
+    def visit_print_stmt(self, stmt: Print):
+        value = self.evaluate(stmt.expression)
+        print(self.stringify(value))
+
     def is_truthy(self, object: object):
         if object is None or object is False:
             return False
@@ -91,10 +103,10 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor):
             return str(int(object))
         return str(object)
 
-    def interpret(self, expression: Expr):
+    def interpret(self, statements: list[Stmt]):
         try:
-            value = self.evaluate(expression)
-            print(self.stringify(value))
+            for statement in statements:
+                self.execute(statement)
         except LoxRuntimeError as error:
             from lox.lox import Lox
 

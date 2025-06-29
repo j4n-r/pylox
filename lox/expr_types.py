@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Final, Protocol
 
-from .token_type import Token
+from lox.token_type import Token
 
 
 @dataclass
@@ -20,6 +20,7 @@ class Expr(ABC):
         def visit_grouping_expr(self, expr: Grouping) -> R: ...
         def visit_literal_expr(self, expr: Literal) -> R: ...
         def visit_unary_expr(self, expr: Unary) -> R: ...
+        def visit_variable_expr(self, expr: Variable) -> R: ...
 
 @dataclass
 class Binary(Expr):
@@ -51,4 +52,11 @@ class Unary(Expr):
 
     def accept[R](self, visitor: Expr.Visitor[R]) -> R:
         return visitor.visit_unary_expr(self)
+
+@dataclass
+class Variable(Expr):
+    name: Final[Token]
+
+    def accept[R](self, visitor: Expr.Visitor[R]) -> R:
+        return visitor.visit_variable_expr(self)
 

@@ -2,11 +2,10 @@ from __future__ import annotations
 
 from tokenize import TokenError
 
+from lox.expr_types import Binary, Expr, Grouping, Literal, Unary, Variable
 from lox.lox import Lox
-from lox.stmt_types import Expression, Print, Stmt
-
-from .expr_types import Binary, Expr, Grouping, Literal, Unary
-from .token_type import Token, TokenType
+from lox.stmt_types import Expression, Print, Stmt, Var
+from lox.token_type import Token, TokenType
 
 
 class Parser:
@@ -48,6 +47,14 @@ class Parser:
     def expression(self) -> Expr:
         return self.equality()
 
+    def declaration(self):
+        try:
+            if self.match(TokenType.VAR):
+                return self.var_declaration()
+            return self.statement()
+        except self.ParseError as error:
+            self.synchronize()
+
     def statement(self):
         if self.match(TokenType.PRINT):
             return self.print_statement()
@@ -57,6 +64,15 @@ class Parser:
         value = self.expression()
         self.consume(TokenType.SEMICOLON, "Expect ';' after value")
         return Print(value)
+
+    def var_declaration(self):
+        name = self.consume(TokenType.IDENTIFIER, "Expect variable name")
+
+        initializer: Expr | None = None
+        if self.match(TokenType.EQUAL):
+            initializer = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expect, ';' after variable desclaration")
+        return Var(name, initializer)  # type: ignore
 
     def expression_statement(self):
         expr = self.expression()
@@ -155,6 +171,9 @@ class Parser:
         if self.match(TokenType.STRING, TokenType.NUMBER):
             return Literal(self.previous().literal)
 
+        if self.match(TokenType.IDENTIFIER):
+            return Variable(self.previous())
+
         if self.match(TokenType.LEFT_PAREN):
             expr = self.expression()
             self.consume(TokenType.RIGHT_PAREN, "Expect ')' after Expression.")
@@ -164,6 +183,6 @@ class Parser:
     def parse(self) -> list[Stmt]:
         statements: list[Stmt] = []
         while not self.is_at_end():
-            statements.append(self.statement())
+            statements.append(self.declaration())
 
         return statements

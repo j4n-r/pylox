@@ -4,8 +4,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Final, Protocol
 
-from .expr_types import Expr
-from .token_type import Token
+from lox.expr_types import Expr
+from lox.token_type import Token
 
 
 @dataclass
@@ -19,6 +19,7 @@ class Stmt(ABC):
     class Visitor[R](Protocol):
         def visit_expression_stmt(self, stmt: Expression) -> R: ...
         def visit_print_stmt(self, stmt: Print) -> R: ...
+        def visit_var_stmt(self, stmt: Var) -> R: ...
 
 
 @dataclass
@@ -35,3 +36,12 @@ class Print(Stmt):
 
     def accept[R](self, visitor: Stmt.Visitor[R]) -> R:
         return visitor.visit_print_stmt(self)
+
+
+@dataclass
+class Var(Stmt):
+    name: Final[Token]
+    initializer: Final[Expr | None]
+
+    def accept[R](self, visitor: Stmt.Visitor[R]) -> R:
+        return visitor.visit_var_stmt(self)

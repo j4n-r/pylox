@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import sys
 
-from lox import ast_printer, interpreter
+from lox.ast_printer import AstPrinter
+from lox.errors import LoxRuntimeError
 from lox.interpreter import Interpreter
-
-from .ast_printer import AstPrinter
-from .errors import LoxRuntimeError
-from .scanner import Scanner
-from .token_type import Token, TokenType
+from lox.scanner import Scanner
+from lox.token_type import Token, TokenType
 
 
 class Lox:
@@ -63,7 +61,7 @@ class Lox:
 
     @staticmethod
     def runtime_error(error: LoxRuntimeError):
-        print(f"{error.get_message()} \n [line: {error.token.line}]", file=sys.stderr)
+        print(f"{error} \n [line: {error.token.line}]", file=sys.stderr)
         Lox.had_runtime_error = True
 
 

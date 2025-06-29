@@ -35,12 +35,12 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Final, Protocol
 
-from .token_type import Token
+from lox.token_type import Token
 """
 
     # Add Expr import if we're generating Stmt
     if base_name == "Stmt":
-        code += "from .expr_types import Expr\n"
+        code += "from lox.expr_types import Expr\n"
 
     code += f"""
 
@@ -99,11 +99,16 @@ expr_types = [
     "Grouping : Expr expression",
     "Literal  : object value",
     "Unary    : Token operator, Expr right",
+    "Variable : Token name",
 ]
 
 define_ast("lox", "Expr", expr_types)
 
 # Generate statements
-stmt_types = ["Expression : Expr expression", "Print      : Expr expression"]
+stmt_types = [
+    "Expression : Expr expression",
+    "Print      : Expr expression",
+    "Var        : Token name, Expr initializer",
+]
 
 define_ast("lox", "Stmt", stmt_types)

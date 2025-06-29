@@ -1,12 +1,17 @@
+from dataclasses import dataclass
 from typing import override
 
-from .errors import LoxRuntimeError
-from .expr_types import Binary, Expr, Grouping, Literal, Unary
-from .stmt_types import Expression, Print, Stmt
-from .token_type import Token, TokenType
+from lox.environment import Environment
+from lox.errors import LoxRuntimeError
+from lox.expr_types import Binary, Expr, Grouping, Literal, Unary, Variable
+from lox.stmt_types import Expression, Print, Stmt, Var
+from lox.token_type import Token, TokenType
 
 
+@dataclass
 class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
+    environment = Environment()
+
     @override
     def visit_literal_expr(self, expr: Literal):
         return expr.value
@@ -26,6 +31,10 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
                 return -float(right)  # type: ignore
 
     @override
+    def visit_variable_expr(self, expr: Variable):
+        return self.environment.get(expr.name)
+
+    @override
     def visit_binary_expr(self, expr: Binary) -> object:
         left = self.evaluate(expr.left)
         right = self.evaluate(expr.right)
@@ -39,7 +48,7 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
                     return float(left) + float(right)
                 if isinstance(left, str) and isinstance(right, str):
                     return str(left) + str(right)
-                raise LoxRuntimeError(expr.operator, "Operands must be a number")
+                raise LoxRuntimeError(expr.operator, "Operands must be numbers")
             case TokenType.SLASH:
                 self.check_number_operands(expr.operator, left, right)
                 return float(left) / float(right)  # type: ignore
@@ -77,6 +86,14 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
     def visit_print_stmt(self, stmt: Print):
         value = self.evaluate(stmt.expression)
         print(self.stringify(value))
+
+    @override
+    def visit_var_stmt(self, stmt: Var):
+        value: object | None = None
+        if stmt.initializer is not None:
+            value = self.evaluate(stmt.initializer)
+        self.environment.define(stmt.name.lexeme, value)
+        return None
 
     def is_truthy(self, object: object):
         if object is None or object is False:

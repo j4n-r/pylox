@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from .token_type import Token, TokenType
+from lox.token_type import Token, TokenType
 
 
 class Scanner:

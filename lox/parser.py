@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from tokenize import TokenError
-
-from lox.expr_types import Binary, Expr, Grouping, Literal, Unary, Variable
+from lox.expr_types import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
 from lox.lox import Lox
-from lox.stmt_types import Expression, Print, Stmt, Var
+from lox.stmt_types import Block, Expression, Print, Stmt, Var
 from lox.token_type import Token, TokenType
 
 
@@ -45,7 +43,7 @@ class Parser:
         return self.tokens[self.current - 1]
 
     def expression(self) -> Expr:
-        return self.equality()
+        return self.assignment()
 
     def declaration(self):
         try:
@@ -58,6 +56,8 @@ class Parser:
     def statement(self):
         if self.match(TokenType.PRINT):
             return self.print_statement()
+        if self.match(TokenType.LEFT_BRACE) and not self.is_at_end():
+            return Block(self.block())
         return self.expression_statement()
 
     def print_statement(self):
@@ -71,13 +71,35 @@ class Parser:
         initializer: Expr | None = None
         if self.match(TokenType.EQUAL):
             initializer = self.expression()
-        self.consume(TokenType.SEMICOLON, "Expect, ';' after variable desclaration")
+            self.consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.")
         return Var(name, initializer)  # type: ignore
 
     def expression_statement(self):
         expr = self.expression()
         self.consume(TokenType.SEMICOLON, "Expect ';' after expression")
         return Expression(expr)
+
+    def block(self):
+        statements: list[Stmt] = list()
+
+        while not self.check(TokenType.RIGHT_BRACE) and not self.is_at_end():
+            statements.append(self.declaration())  # type: ignore
+
+        self.consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
+        return statements
+
+    def assignment(self):
+        expr = self.equality()
+        if self.match(TokenType.EQUAL):
+            equals = self.previous()
+            value = self.assignment()
+
+            if type(expr) is Variable:
+                name = expr.name
+                return Assign(name, value)
+
+            self.error(equals, "Invalid assignment target")
+        return expr
 
     def is_at_end(self):
         return self.peek().type == TokenType.EOF
@@ -183,6 +205,6 @@ class Parser:
     def parse(self) -> list[Stmt]:
         statements: list[Stmt] = []
         while not self.is_at_end():
-            statements.append(self.declaration())
+            statements.append(self.declaration())  # type: ignore
 
         return statements

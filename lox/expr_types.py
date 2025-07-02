@@ -16,11 +16,20 @@ class Expr(ABC):
         pass
 
     class Visitor[R](Protocol):
+        def visit_assign_expr(self, expr: Assign) -> R: ...
         def visit_binary_expr(self, expr: Binary) -> R: ...
         def visit_grouping_expr(self, expr: Grouping) -> R: ...
         def visit_literal_expr(self, expr: Literal) -> R: ...
         def visit_unary_expr(self, expr: Unary) -> R: ...
         def visit_variable_expr(self, expr: Variable) -> R: ...
+
+@dataclass
+class Assign(Expr):
+    name: Final[Token]
+    value: Final[Expr]
+
+    def accept[R](self, visitor: Expr.Visitor[R]) -> R:
+        return visitor.visit_assign_expr(self)
 
 @dataclass
 class Binary(Expr):

@@ -1,16 +1,15 @@
-from dataclasses import dataclass
 from typing import override
 
 from lox.environment import Environment
 from lox.errors import LoxRuntimeError
-from lox.expr_types import Binary, Expr, Grouping, Literal, Unary, Variable
-from lox.stmt_types import Expression, Print, Stmt, Var
+from lox.expr_types import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
+from lox.stmt_types import Block, Expression, Print, Stmt, Var
 from lox.token_type import Token, TokenType
 
 
-@dataclass
 class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
-    environment = Environment()
+    def __init__(self):
+        self.environment = Environment()
 
     @override
     def visit_literal_expr(self, expr: Literal):
@@ -22,7 +21,7 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
 
     @override
     def visit_unary_expr(self, expr: Unary) -> object:
-        right = self.evaluate(expr)
+        right = self.evaluate(expr.right)
 
         match expr.operator.type:
             case TokenType.BANG:
@@ -70,13 +69,26 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
             case TokenType.BANG_EQUAL:
                 return not self.is_equal(left, right)
             case TokenType.EQUAL_EQUAL:
-                return not self.is_equal(left, right)
+                return self.is_equal(left, right)
 
     def evaluate(self, expr: Expr):
         return expr.accept(self)
 
     def execute(self, stmt: Stmt):
         stmt.accept(self)
+
+    def execute_block(self, statements: list[Stmt], environment: Environment):
+        previous = self.environment
+        try:
+            self.environment = environment
+            for statement in statements:
+                self.execute(statement)
+        finally:
+            self.environment = previous
+
+    @override
+    def visit_block_stmt(self, stmt: Block):
+        self.execute_block(stmt.statements, Environment(self.environment))
 
     @override
     def visit_expression_stmt(self, stmt: Expression):
@@ -94,6 +106,12 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
             value = self.evaluate(stmt.initializer)
         self.environment.define(stmt.name.lexeme, value)
         return None
+
+    @override
+    def visit_assign_expr(self, expr: Assign):
+        value = self.evaluate(expr.value)
+        self.environment.assign(expr.name, value)
+        return value
 
     def is_truthy(self, object: object):
         if object is None or object is False:

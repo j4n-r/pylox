@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import sys
 
-from lox.ast_printer import AstPrinter
 from lox.errors import LoxRuntimeError
 from lox.interpreter import Interpreter
 from lox.scanner import Scanner

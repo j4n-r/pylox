@@ -1,8 +1,17 @@
 from __future__ import annotations
 
-from lox.expr_types import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
+from lox.expr_types import (
+    Assign,
+    Binary,
+    Expr,
+    Grouping,
+    Literal,
+    Logical,
+    Unary,
+    Variable,
+)
 from lox.lox import Lox
-from lox.stmt_types import Block, Expression, Print, Stmt, Var
+from lox.stmt_types import Block, Expression, If, Print, Stmt, Var, While
 from lox.token_type import Token, TokenType
 
 
@@ -54,11 +63,26 @@ class Parser:
             self.synchronize()
 
     def statement(self):
+        if self.match(TokenType.IF):
+            return self.if_statement()
         if self.match(TokenType.PRINT):
             return self.print_statement()
+        if self.match(TokenType.WHILE):
+            return self.while_statement()
         if self.match(TokenType.LEFT_BRACE) and not self.is_at_end():
             return Block(self.block())
         return self.expression_statement()
+
+    def if_statement(self):
+        self.consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.")
+        condition = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.")
+
+        then_branch = self.statement()
+        else_branch = None
+        if self.match(TokenType.ELSE):
+            else_branch = self.statement()
+        return If(condition, then_branch, else_branch)  # type: ignore
 
     def print_statement(self):
         value = self.expression()
@@ -73,6 +97,14 @@ class Parser:
             initializer = self.expression()
             self.consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.")
         return Var(name, initializer)  # type: ignore
+
+    def while_statement(self):
+        self.consume(TokenType.LEFT_PAREN, "Expected '( after 'while'.")
+        condition = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expected ') after 'while'.")
+        body = self.statement()
+
+        return While(condition, body)
 
     def expression_statement(self):
         expr = self.expression()
@@ -89,7 +121,7 @@ class Parser:
         return statements
 
     def assignment(self):
-        expr = self.equality()
+        expr = self.lox_or()
         if self.match(TokenType.EQUAL):
             equals = self.previous()
             value = self.assignment()
@@ -99,6 +131,22 @@ class Parser:
                 return Assign(name, value)
 
             self.error(equals, "Invalid assignment target")
+        return expr
+
+    def lox_or(self):
+        expr = self.lox_and()
+        while self.match(TokenType.OR):
+            operator = self.previous()
+            right = self.lox_and()
+            expr = Logical(expr, operator, right)
+        return expr
+
+    def lox_and(self):
+        expr = self.equality()
+        while self.match(TokenType.AND):
+            operator = self.previous()
+            right = self.equality()
+            expr = Logical(expr, operator, right)
         return expr
 
     def is_at_end(self):

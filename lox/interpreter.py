@@ -2,8 +2,17 @@ from typing import override
 
 from lox.environment import Environment
 from lox.errors import LoxRuntimeError
-from lox.expr_types import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
-from lox.stmt_types import Block, Expression, Print, Stmt, Var
+from lox.expr_types import (
+    Assign,
+    Binary,
+    Expr,
+    Grouping,
+    Literal,
+    Logical,
+    Unary,
+    Variable,
+)
+from lox.stmt_types import Block, Expression, If, Print, Stmt, Var, While
 from lox.token_type import Token, TokenType
 
 
@@ -14,6 +23,17 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
     @override
     def visit_literal_expr(self, expr: Literal):
         return expr.value
+
+    @override
+    def visit_logical_expr(self, expr: Logical):
+        left = self.evaluate(expr.left)
+        if expr.operator.type == TokenType.OR:
+            if self.is_truthy(left):
+                return left
+        else:
+            if not self.is_truthy(left):
+                return left
+        return self.evaluate(expr.right)
 
     @override
     def visit_grouping_expr(self, expr: Grouping):
@@ -95,6 +115,13 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
         self.evaluate(stmt.expression)
 
     @override
+    def visit_if_stmt(self, stmt: If):
+        if self.is_truthy(self.evaluate(stmt.condition)):
+            self.execute(stmt.then_branch)
+        elif stmt.else_branch is not None:
+            self.execute(stmt.else_branch)
+
+    @override
     def visit_print_stmt(self, stmt: Print):
         value = self.evaluate(stmt.expression)
         print(self.stringify(value))
@@ -106,6 +133,11 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
             value = self.evaluate(stmt.initializer)
         self.environment.define(stmt.name.lexeme, value)
         return None
+
+    @override
+    def visit_while_stmt(self, stmt: While):
+        while self.is_truthy(self.evaluate(stmt.condition)):
+            self.execute(stmt.body)
 
     @override
     def visit_assign_expr(self, expr: Assign):

@@ -33,7 +33,7 @@ def define_ast(output_dir: str, base_name: str, types: list[str]):
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Final, Protocol
+from typing import Protocol
 
 from lox.token_type import Token
 """
@@ -77,7 +77,7 @@ class {base_name}(ABC):
 
             if fields:
                 for field_type, field_name in fields:
-                    f.write(f"    {field_name}: Final[{field_type}]\n")
+                    f.write(f"    {field_name}: {field_type}\n")
             else:
                 f.write("    pass\n")
 
@@ -99,6 +99,7 @@ expr_types = [
     "Binary   : Expr left, Token operator, Expr right",
     "Grouping : Expr expression",
     "Literal  : object value",
+    "Logical  : Expr left, Token operator, Expr right",
     "Unary    : Token operator, Expr right",
     "Variable : Token name",
 ]
@@ -110,7 +111,9 @@ stmt_types = [
     "Block      : list[Stmt] statements",
     "Expression : Expr expression",
     "Print      : Expr expression",
+    "If         : Expr condition, Stmt then_branch," + " Stmt else_branch",
     "Var        : Token name, Expr initializer",
+    "While      : Expr condition, Stmt body",
 ]
 
 define_ast("lox", "Stmt", stmt_types)

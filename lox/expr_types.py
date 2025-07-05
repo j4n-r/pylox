@@ -18,6 +18,7 @@ class Expr(ABC):
     class Visitor[R](Protocol):
         def visit_assign_expr(self, expr: Assign) -> R: ...
         def visit_binary_expr(self, expr: Binary) -> R: ...
+        def visit_call_expr(self, expr: Call) -> R: ...
         def visit_grouping_expr(self, expr: Grouping) -> R: ...
         def visit_literal_expr(self, expr: Literal) -> R: ...
         def visit_logical_expr(self, expr: Logical) -> R: ...
@@ -40,6 +41,15 @@ class Binary(Expr):
 
     def accept[R](self, visitor: Expr.Visitor[R]) -> R:
         return visitor.visit_binary_expr(self)
+
+@dataclass
+class Call(Expr):
+    callee: Expr
+    paren: Token
+    arguments: list[Expr]
+
+    def accept[R](self, visitor: Expr.Visitor[R]) -> R:
+        return visitor.visit_call_expr(self)
 
 @dataclass
 class Grouping(Expr):

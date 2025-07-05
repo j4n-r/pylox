@@ -97,6 +97,7 @@ class {base_name}(ABC):
 expr_types = [
     "Assign   : Token name, Expr value",
     "Binary   : Expr left, Token operator, Expr right",
+    "Call     : Expr callee, Token paren, list[Expr] arguments",
     "Grouping : Expr expression",
     "Literal  : object value",
     "Logical  : Expr left, Token operator, Expr right",
@@ -110,6 +111,7 @@ define_ast("lox", "Expr", expr_types)
 stmt_types = [
     "Block      : list[Stmt] statements",
     "Expression : Expr expression",
+    "Function   : Token name, list[Token] params," + " list[Stmt] body",
     "Print      : Expr expression",
     "If         : Expr condition, Stmt then_branch," + " Stmt else_branch",
     "Var        : Token name, Expr initializer",

@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import time
 from typing import override
 
 from lox.environment import Environment
@@ -5,6 +8,7 @@ from lox.errors import LoxRuntimeError
 from lox.expr_types import (
     Assign,
     Binary,
+    Call,
     Expr,
     Grouping,
     Literal,
@@ -12,13 +16,28 @@ from lox.expr_types import (
     Unary,
     Variable,
 )
+from lox.lox_callable import LoxCallable
 from lox.stmt_types import Block, Expression, If, Print, Stmt, Var, While
 from lox.token_type import Token, TokenType
 
 
 class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
     def __init__(self):
-        self.environment = Environment()
+        self.globals = Environment()
+        self.environment = self.globals
+
+        class ClockCallable(LoxCallable):
+            def arity(self) -> int:
+                return 0
+
+            @override
+            def call(self, interpreter: Interpreter, arguments: list[object]) -> object:
+                return time.time()
+
+            def __str__(self) -> str:
+                return "<native fn>"
+
+        self.globals.define("clock", ClockCallable())
 
     @override
     def visit_literal_expr(self, expr: Literal):
@@ -90,6 +109,24 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
                 return not self.is_equal(left, right)
             case TokenType.EQUAL_EQUAL:
                 return self.is_equal(left, right)
+
+    @override
+    def visit_call_expr(self, expr: Call):
+        callee = self.evaluate(expr.callee)
+        arguments: object = []
+        for argument in arguments:
+            arguments.append(self.evaluate(argument))
+
+        if not isinstance(callee, LoxCallable):
+            raise LoxRuntimeError(expr.paren, "Can only call functions and classes.")
+
+        function: LoxCallable = callee
+        if len(arguments) is not function.arity():
+            raise LoxRuntimeError(
+                expr.paren,
+                f"Expected {function.arity()} arguments but got {len(arguments)}",
+            )
+        return function.call(self, arguments)
 
     def evaluate(self, expr: Expr):
         return expr.accept(self)

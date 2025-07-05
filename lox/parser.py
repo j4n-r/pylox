@@ -3,6 +3,7 @@ from __future__ import annotations
 from lox.expr_types import (
     Assign,
     Binary,
+    Call,
     Expr,
     Grouping,
     Literal,
@@ -11,7 +12,7 @@ from lox.expr_types import (
     Variable,
 )
 from lox.lox import Lox
-from lox.stmt_types import Block, Expression, If, Print, Stmt, Var, While
+from lox.stmt_types import Block, Expression, Function, If, Print, Stmt, Var, While
 from lox.token_type import Token, TokenType
 
 
@@ -56,6 +57,8 @@ class Parser:
 
     def declaration(self):
         try:
+            if self.match(TokenType.FUN):
+                return self.function("function")
             if self.match(TokenType.VAR):
                 return self.var_declaration()
             return self.statement()
@@ -148,6 +151,26 @@ class Parser:
         expr = self.expression()
         self.consume(TokenType.SEMICOLON, "Expect ';' after expression")
         return Expression(expr)
+
+    def function(self, kind: str):
+        name = self.consume(TokenType.IDENTIFIER, f"Expect {kind} name.")
+        self.consume(TokenType.LEFT_PAREN, f"Expect '(' after {kind} name.")
+        parameters: list[Token] = []
+        if not self.check(TokenType.RIGHT_PAREN):
+            while True:
+                if len(parameters) >= 255:
+                    self.error(self.peek(), "Can't have more than 255 parameters.")
+
+                parameters.append(
+                    self.consume(TokenType.IDENTIFIER, "Expect parameter name.")
+                )
+
+                if not self.match(TokenType.COMMA):
+                    break
+        self.consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.")
+        self.consume(TokenType.LEFT_BRACE, f"Expect '{{' before {kind} name.")
+        body = self.block()
+        return Function(name, parameters, body)
 
     def block(self):
         statements: list[Stmt] = list()
@@ -266,7 +289,29 @@ class Parser:
             operator = self.previous()
             right = self.unary()
             return Unary(operator, right)
-        return self.primary()
+        return self.call()
+
+    def finish_call(self, callee: Expr):
+        arguments: list[Expr] = []
+        if not self.check(TokenType.RIGHT_PAREN):
+            arguments.append(self.expression())
+            while self.match(TokenType.RIGHT_PAREN):
+                if len(arguments) >= 255:
+                    self.error(self.peek(), "Can't  have more than 255 arguements.")
+                arguments.append(self.expression())
+        paren = self.consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments.")
+        return Call(callee, paren, arguments)
+
+    def call(self):
+        expr = self.primary()
+
+        while True:
+            if self.match(TokenType.LEFT_PAREN):
+                expr = self.finish_call(expr)
+            else:
+                break
+
+        return expr
 
     def primary(self):
         if self.match(TokenType.FALSE):

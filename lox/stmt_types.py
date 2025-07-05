@@ -19,6 +19,7 @@ class Stmt(ABC):
     class Visitor[R](Protocol):
         def visit_block_stmt(self, stmt: Block) -> R: ...
         def visit_expression_stmt(self, stmt: Expression) -> R: ...
+        def visit_function_stmt(self, stmt: Function) -> R: ...
         def visit_print_stmt(self, stmt: Print) -> R: ...
         def visit_if_stmt(self, stmt: If) -> R: ...
         def visit_var_stmt(self, stmt: Var) -> R: ...
@@ -37,6 +38,15 @@ class Expression(Stmt):
 
     def accept[R](self, visitor: Stmt.Visitor[R]) -> R:
         return visitor.visit_expression_stmt(self)
+
+@dataclass
+class Function(Stmt):
+    name: Token
+    params: list[Token]
+    body: list[Stmt]
+
+    def accept[R](self, visitor: Stmt.Visitor[R]) -> R:
+        return visitor.visit_function_stmt(self)
 
 @dataclass
 class Print(Stmt):

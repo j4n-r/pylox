@@ -12,7 +12,17 @@ from lox.expr_types import (
     Variable,
 )
 from lox.lox import Lox
-from lox.stmt_types import Block, Expression, Function, If, Print, Stmt, Var, While
+from lox.stmt_types import (
+    Block,
+    Expression,
+    Function,
+    If,
+    Print,
+    Return,
+    Stmt,
+    Var,
+    While,
+)
 from lox.token_type import Token, TokenType
 
 
@@ -64,6 +74,7 @@ class Parser:
             return self.statement()
         except self.ParseError as error:
             self.synchronize()
+            return None
 
     def statement(self):
         if self.match(TokenType.FOR):
@@ -72,6 +83,8 @@ class Parser:
             return self.if_statement()
         if self.match(TokenType.PRINT):
             return self.print_statement()
+        if self.match(TokenType.RETURN):
+            return self.return_statement()
         if self.match(TokenType.WHILE):
             return self.while_statement()
         if self.match(TokenType.LEFT_BRACE) and not self.is_at_end():
@@ -130,6 +143,14 @@ class Parser:
         self.consume(TokenType.SEMICOLON, "Expect ';' after value")
         return Print(value)
 
+    def return_statement(self):
+        keyword = self.previous()
+        value = None
+        if not self.check(TokenType.SEMICOLON):
+            value = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expect ';' after return value")
+        return Return(keyword, value)  # type: ignore
+
     def var_declaration(self):
         name = self.consume(TokenType.IDENTIFIER, "Expect variable name")
 
@@ -176,7 +197,9 @@ class Parser:
         statements: list[Stmt] = list()
 
         while not self.check(TokenType.RIGHT_BRACE) and not self.is_at_end():
-            statements.append(self.declaration())  # type: ignore
+            decl = self.declaration()
+            if decl is not None:  # Add this check
+                statements.append(decl)
 
         self.consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
         return statements
@@ -295,7 +318,7 @@ class Parser:
         arguments: list[Expr] = []
         if not self.check(TokenType.RIGHT_PAREN):
             arguments.append(self.expression())
-            while self.match(TokenType.RIGHT_PAREN):
+            while self.match(TokenType.COMMA):
                 if len(arguments) >= 255:
                     self.error(self.peek(), "Can't  have more than 255 arguements.")
                 arguments.append(self.expression())
@@ -336,6 +359,8 @@ class Parser:
     def parse(self) -> list[Stmt]:
         statements: list[Stmt] = []
         while not self.is_at_end():
-            statements.append(self.declaration())  # type: ignore
+            decl = self.declaration()
+            if decl is not None:  # Add this check
+                statements.append(decl)
 
         return statements

@@ -113,6 +113,7 @@ stmt_types = [
     "Expression : Expr expression",
     "Function   : Token name, list[Token] params," + " list[Stmt] body",
     "Print      : Expr expression",
+    "Return     : Token keyword, Expr value",
     "If         : Expr condition, Stmt then_branch," + " Stmt else_branch",
     "Var        : Token name, Expr initializer",
     "While      : Expr condition, Stmt body",

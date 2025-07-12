@@ -17,7 +17,19 @@ from lox.expr_types import (
     Variable,
 )
 from lox.lox_callable import LoxCallable
-from lox.stmt_types import Block, Expression, If, Print, Stmt, Var, While
+from lox.lox_function import LoxFunction
+from lox.lox_return import LoxReturn
+from lox.stmt_types import (
+    Block,
+    Expression,
+    Function,
+    If,
+    Print,
+    Return,
+    Stmt,
+    Var,
+    While,
+)
 from lox.token_type import Token, TokenType
 
 
@@ -113,15 +125,15 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
     @override
     def visit_call_expr(self, expr: Call):
         callee = self.evaluate(expr.callee)
-        arguments: object = []
-        for argument in arguments:
+        arguments: list[object] = []
+        for argument in expr.arguments:
             arguments.append(self.evaluate(argument))
 
         if not isinstance(callee, LoxCallable):
             raise LoxRuntimeError(expr.paren, "Can only call functions and classes.")
 
         function: LoxCallable = callee
-        if len(arguments) is not function.arity():
+        if len(arguments) != function.arity():
             raise LoxRuntimeError(
                 expr.paren,
                 f"Expected {function.arity()} arguments but got {len(arguments)}",
@@ -152,6 +164,12 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
         self.evaluate(stmt.expression)
 
     @override
+    def visit_function_stmt(self, stmt: Function):
+        function = LoxFunction(stmt, self.environment)
+        self.environment.define(stmt.name.lexeme, function)
+        return None
+
+    @override
     def visit_if_stmt(self, stmt: If):
         if self.is_truthy(self.evaluate(stmt.condition)):
             self.execute(stmt.then_branch)
@@ -162,6 +180,13 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
     def visit_print_stmt(self, stmt: Print):
         value = self.evaluate(stmt.expression)
         print(self.stringify(value))
+
+    @override
+    def visit_return_stmt(self, stmt: Return):
+        value = None
+        if stmt.value is not None:
+            value = self.evaluate(stmt.value)
+        raise LoxReturn(value)
 
     @override
     def visit_var_stmt(self, stmt: Var):

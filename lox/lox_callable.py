@@ -1,8 +1,7 @@
-from typing import Protocol
-
-from lox.interpreter import Interpreter
+from typing import Protocol, runtime_checkable
 
 
+@runtime_checkable
 class LoxCallable(Protocol):
     def arity(self) -> int: ...
-    def call(self, interpreter: Interpreter, arguments: list[object]) -> object: ...
+    def call(self, interpreter, arguments: list[object]) -> object: ...

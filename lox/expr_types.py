@@ -7,10 +7,8 @@ from typing import Protocol
 from lox.token_type import Token
 
 
-@dataclass
+@dataclass(frozen=True)
 class Expr(ABC):
-    pass
-    
     @abstractmethod
     def accept[R](self, visitor: Expr.Visitor[R]) -> R:
         pass
@@ -25,7 +23,8 @@ class Expr(ABC):
         def visit_unary_expr(self, expr: Unary) -> R: ...
         def visit_variable_expr(self, expr: Variable) -> R: ...
 
-@dataclass
+
+@dataclass(frozen=True)
 class Assign(Expr):
     name: Token
     value: Expr
@@ -33,7 +32,8 @@ class Assign(Expr):
     def accept[R](self, visitor: Expr.Visitor[R]) -> R:
         return visitor.visit_assign_expr(self)
 
-@dataclass
+
+@dataclass(frozen=True)
 class Binary(Expr):
     left: Expr
     operator: Token
@@ -42,7 +42,8 @@ class Binary(Expr):
     def accept[R](self, visitor: Expr.Visitor[R]) -> R:
         return visitor.visit_binary_expr(self)
 
-@dataclass
+
+@dataclass(frozen=True)
 class Call(Expr):
     callee: Expr
     paren: Token
@@ -51,21 +52,24 @@ class Call(Expr):
     def accept[R](self, visitor: Expr.Visitor[R]) -> R:
         return visitor.visit_call_expr(self)
 
-@dataclass
+
+@dataclass(frozen=True)
 class Grouping(Expr):
     expression: Expr
 
     def accept[R](self, visitor: Expr.Visitor[R]) -> R:
         return visitor.visit_grouping_expr(self)
 
-@dataclass
+
+@dataclass(frozen=True)
 class Literal(Expr):
     value: object
 
     def accept[R](self, visitor: Expr.Visitor[R]) -> R:
         return visitor.visit_literal_expr(self)
 
-@dataclass
+
+@dataclass(frozen=True)
 class Logical(Expr):
     left: Expr
     operator: Token
@@ -74,7 +78,8 @@ class Logical(Expr):
     def accept[R](self, visitor: Expr.Visitor[R]) -> R:
         return visitor.visit_logical_expr(self)
 
-@dataclass
+
+@dataclass(frozen=True)
 class Unary(Expr):
     operator: Token
     right: Expr
@@ -82,10 +87,10 @@ class Unary(Expr):
     def accept[R](self, visitor: Expr.Visitor[R]) -> R:
         return visitor.visit_unary_expr(self)
 
-@dataclass
+
+@dataclass(frozen=True)
 class Variable(Expr):
     name: Token
 
     def accept[R](self, visitor: Expr.Visitor[R]) -> R:
         return visitor.visit_variable_expr(self)
-

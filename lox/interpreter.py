@@ -37,6 +37,7 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
     def __init__(self):
         self.globals = Environment()
         self.environment = self.globals
+        self.locals: dict[Expr, int] = {}
 
         class ClockCallable(LoxCallable):
             def arity(self) -> int:
@@ -82,7 +83,14 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
 
     @override
     def visit_variable_expr(self, expr: Variable):
-        return self.environment.get(expr.name)
+        return self.look_up_variable(expr.name, expr)
+
+    def look_up_variable(self, name: Token, expr: Expr):
+        distance = self.locals.get(expr)
+        if distance is not None:
+            return self.environment.get_at(distance, name.lexeme)
+        else:
+            return self.environment.get(name)
 
     @override
     def visit_binary_expr(self, expr: Binary) -> object:
@@ -146,6 +154,9 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
     def execute(self, stmt: Stmt):
         stmt.accept(self)
 
+    def resolve(self, expr: Expr, depth: int):
+        self.locals[expr] = depth
+
     def execute_block(self, statements: list[Stmt], environment: Environment):
         previous = self.environment
         try:
@@ -204,7 +215,11 @@ class Interpreter(Expr.Visitor[object], Stmt.Visitor[None]):
     @override
     def visit_assign_expr(self, expr: Assign):
         value = self.evaluate(expr.value)
-        self.environment.assign(expr.name, value)
+        distance = self.locals.get(expr)
+        if distance is not None:
+            self.environment.assign_at(distance, expr.name, value)
+        else:
+            self.environment.assign(expr.name, value)
         return value
 
     def is_truthy(self, object: object):

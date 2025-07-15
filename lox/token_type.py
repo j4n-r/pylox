@@ -52,7 +52,7 @@ class TokenType(Enum):
     EOF = auto()
 
 
-@dataclass
+@dataclass(frozen=True)
 class Token:
     type: TokenType
     lexeme: str
